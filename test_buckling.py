@@ -1,5 +1,3 @@
-# column_buckling.py
-
 import numpy as np
 from scipy.optimize import bisect
 
@@ -14,12 +12,10 @@ def find_critical_load(L, E, A, r, c, e, sigma_allow):
     e: אקסצנטריות במ"מ
     sigma_allow: מאמץ מותר ב-MPa
 
-    Return:
-        P (float) - עומס קריטי בניוטון
+    Return: העומס P בניוטון (float)
     """
 
     def f(P):
-        # sec(x) = 1/cos(x)
         x = (L / (2 * r)) * np.sqrt(P / (E * A))
 
         sigma_max = (P / A) * (
@@ -28,10 +24,11 @@ def find_critical_load(L, E, A, r, c, e, sigma_allow):
 
         return sigma_max - sigma_allow
 
-    # גבול עליון בטוח: מעט מתחת לעומס אוילר
+    # עומס אוילר
     P_euler = (np.pi**2 * E * A * r**2) / (L**2)
 
-    P_low = 1e-9
-    P_high = 0.999 * P_euler
+    # תחום חיפוש בטוח
+    P_min = 1e-9
+    P_max = 0.999 * P_euler
 
-    return float(bisect(f, P_low, P_high, xtol=1e-9))
+    return float(bisect(f, P_min, P_max, xtol=1e-9))
