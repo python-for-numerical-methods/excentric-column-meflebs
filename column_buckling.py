@@ -1,5 +1,7 @@
 import numpy as np
+import matplotlib.pyplot as plt
 from scipy import optimize
+
 
 def find_critical_load(L, E, A, r, c, e, sigma_allow):
   """
