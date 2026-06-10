@@ -2,7 +2,7 @@ import math
 from scipy.optimize import bisect
 
 def find_critical_load(L, E, A, r, c, e, sigma_allow):
-    """
+    
     L: אורך במ"מ
     E: מודול אלסטיות ב-MPa
     A: שטח חתך בממ"ר
@@ -12,7 +12,7 @@ def find_critical_load(L, E, A, r, c, e, sigma_allow):
     sigma_allow: מאמץ מותר ב-MPa
 
     Return: העומס P בניוטון (float)
-    """
+
     
     # חישוב חלופי מתמטית לעומס אוילר התיאורטי כדי לשנות את מבנה השורה
     euler_limit = E * A * ((math.pi * r) / L) ** 2
