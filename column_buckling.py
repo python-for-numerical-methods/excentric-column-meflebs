@@ -10,7 +10,7 @@ def find_critical_load(L, E, A, r, c, e, sigma_allow):
     c: מרחק לסיב קיצוני במ"מ
     e: אקסצנטריות במ"מ
     sigma_allow: מאמץ מותר ב-MPa
-    
+
     Return: העומס P בניוטון (float)
     """
     
