@@ -1,24 +1,11 @@
-import numpy as np
-from scipy.optimize import bisect
-
-
-def find_critical_load(L, E, A, r, c, e, sigma_allow):
-
-    def sigma_max(P):
-        theta = (L / (2 * r)) * np.sqrt(P / (E * A))
-        sec_theta = 1.0 / np.cos(theta)
-
-        return (P / A) * (
-            1.0 + (e * c / r**2) * sec_theta
-        )
-
-    def f(P):
-        return sigma_max(P) - sigma_allow
-
-    p_min = 1e-8
-    p_max = sigma_allow * A
-
-    while f(p_max) < 0:
-        p_max *= 2
-
-    return bisect(f, p_min, p_max)
+# חתך HEB 200, פלדה S235
+P = find_critical_load(
+    L=4000,          # אורך 4 מטר
+    E=210000,        # מודול אלסטיות פלדה
+    A=7810,          # שטח חתך HEB 200
+    r=50.7,          # רדיוס אינרציה
+    c=100,           # חצי גובה החתך
+    e=20,            # אקסצנטריות 20 מ"מ
+    sigma_allow=235  # מאמץ כניעה S235
+)
+print(f"העומס הקריטי: {P:.2f} N = {P/1000:.2f} kN")
