@@ -33,3 +33,11 @@ def find_critical_load(L, E, A, r, c, e, sigma_allow):
     # הגדרת גבולות החיפוש לאלגוריתם ה-Bisection
     lower_bound = 1e-5
     upper_bound = euler_limit * 0.9999
+    
+    try:
+        # פתרון נומרי למציאת נקודת האפס
+        critical_p = bisect(secant_equation, lower_bound, upper_bound)
+        return float(critical_p)
+    except ValueError:
+        # הודעת שגיאה חלופית למקרה של חריגה פיזיקלית בנתונים
+        raise ValueError("Optimization failed: No convergence within realistic physical boundaries.")
