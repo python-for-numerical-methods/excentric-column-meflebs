@@ -22,7 +22,7 @@ def find_critical_load(L, E, A, r, c, e, sigma_allow):
         angle = (L / (2 * r)) * np.sqrt(P / (E * A))
 
  # נוסחת הסקנט למאמץ המקסימלי
-        sigma_max = (P / A) * (1 + (e * c / r**2) * (1 / np.cos(angle)))
+        sigma_max = (P / A) * (1 + (e * c / r**2) * (P / np.cos(angle)))
         # החזרת ההפרש מהמאמץ המותר
         return sigma_max - sigma_allow
 
