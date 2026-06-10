@@ -12,27 +12,29 @@ def find_critical_load(L, E, A, r, c, e, sigma_allow):
     e: אקסצנטריות במ"מ
     sigma_allow: מאמץ מותר ב-MPa
 
-    Return: העומס P בניוטון (float)
+    Return:
+        P (N)
     """
 
-    def f(P):
-        angle = (L / (2 * r)) * np.sqrt(P / (E * A))
+    def sigma_max(P):
+        theta = (L / (2 * r)) * np.sqrt(P / (E * A))
+        sec_theta = 1.0 / np.cos(theta)
 
-        sigma_max = (P / A) * (
-            1 + (e * c / (r ** 2)) * (1 / np.cos(angle))
+        return (P / A) * (
+            1.0 + (e * c / r**2) * sec_theta
         )
 
-        return sigma_max - sigma_allow
+    def f(P):
+        return sigma_max(P) - sigma_allow
 
-    # גבול תחתון
-    p_min = 1e-8
+    # עומס אוילר משמש חסם עליון סביר
+    P_euler = (np.pi**2 * E * A * r**2) / (L**2)
 
-    # התחלה עם עומס לחיצה ישיר
-    p_max = sigma_allow * A
+    # מחפשים תחום שבו יש החלפת סימן
+    P_low = 0.0
+    P_high = 0.99 * P_euler
 
-    # הרחבת הגבול העליון עד שיש שינוי סימן
-    while f(p_max) <= 0:
-        p_max *= 2
+    while f(P_high) < 0:
+        P_high *= 1.5
 
-    # מציאת השורש
-    return float(bisect(f, p_min, p_max))
+    return bisect(f, P_low, P_high, xtol=1e-6)
