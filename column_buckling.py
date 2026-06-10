@@ -1,11 +1,32 @@
-# חתך HEB 200, פלדה S235
-P = find_critical_load(
-    L=4000,          # אורך 4 מטר
-    E=210000,        # מודול אלסטיות פלדה
-    A=7810,          # שטח חתך HEB 200
-    r=50.7,          # רדיוס אינרציה
-    c=100,           # חצי גובה החתך
-    e=20,            # אקסצנטריות 20 מ"מ
-    sigma_allow=235  # מאמץ כניעה S235
-)
-print(f"העומס הקריטי: {P:.2f} N = {P/1000:.2f} kN")
+import numpy as np
+from scipy.optimize import bisect
+
+
+def find_critical_load(L, E, A, r, c, e, sigma_allow):
+    """
+    מוצא את העומס המקסימלי P שיביא את העמוד למאמץ המותר.
+    
+    L: אורך במ"מ
+    E: מודול אלסטיות ב-MPa
+    A: שטח חתך בממ"ר
+    r: רדיוס אינרציה במ"מ
+    c: מרחק לסיב קיצוני במ"מ
+    e: אקסצנטריות במ"מ
+    sigma_allow: מאמץ מותר ב-MPa
+    
+    Return: העומס P בניוטון (float)
+    """
+    
+    def equation(P):
+        arg = (L / (2 * r)) * np.sqrt(P / (E * A))
+        secant_value = 1.0 / np.cos(arg)
+        sigma_max = (P / A) * (1 + (e * c / r**2) * secant_value)
+        return sigma_max - sigma_allow
+    
+    P_euler = (np.pi**2 * E * A) / (L / r)**2
+    P_low = 1.0
+    P_high = 0.99 * P_euler
+    
+    P_critical = bisect(equation, P_low, P_high, xtol=1e-6)
+    
+    return P_critical
