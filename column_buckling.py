@@ -1,5 +1,5 @@
-import math
-from scipy.optimize import bisect
+import numpy as np
+from scipy import optimize
 
 def find_critical_load(L, E, A, r, c, e, sigma_allow):
     """
