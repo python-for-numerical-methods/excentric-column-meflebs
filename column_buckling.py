@@ -25,7 +25,7 @@ def find_critical_load(L, E, A, r, c, e, sigma_allow):
 
     Return: העומס P בניוטון (float)
     """
-    # ניחוש התחלתי - מבוסס על מאמץ מותר כפול שטח חתך (כ-50% מעומס אוילר)
+    # ניחוש התחלתי - מבוסס על 50% מעומס אוילר
     P_euler = (np.pi ** 2 * E * A * r ** 2) / (L ** 2)
     P_guess = 0.5 * P_euler
 
