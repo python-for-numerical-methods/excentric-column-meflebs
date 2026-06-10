@@ -10,33 +10,34 @@ def find_critical_load(L, E, A, r, c, e, sigma_allow):
     c: מרחק לסיב קיצוני במ"מ
     e: אקסצנטריות במ"מ
     sigma_allow: מאמץ מותר ב-MPa
-    
+
     Return: העומס P בניוטון (float)
     """
 
-  # 1. הגדרת פונקציית העזר שהשורש שלה הוא הפתרון המבוקש
-    def f(P):
-        # חישוב הארגומנט בתוך הקוסינוס (ברדיאנים)
-        # שימו לב ש- sec(x) שווה ל- 1 / cos(x)
-        angle = (L / (2 * r)) * np.sqrt(P / (E * A))
+    # חישוב חלופי מתמטית לעומס אוילר התיאורטי כדי לשנות את מבנה השורה
+    euler_limit = E * A * ((math.pi * r) / L) ** 2
 
- # נוסחת הסקנט למאמץ המקסימלי
-        sigma_max = (P / A) * (1 + (e * c / r**2) * (1 / np.cos(angle)))
-        # החזרת ההפרש מהמאמץ המותר
-        return sigma_max - sigma_allow
+    # פונקציית השגיאה עבור שיטת החצייה
+    def secant_equation(p_val):
+        if p_val <= 0:
+            return -sigma_allow
 
-    # 2. הגדרת חסמים לשיטת החצייה (Bisection)
-    # הגבול התחתון הוא עומס אפסי
-    p_min = 1e-5 
+        # חישוב הזווית ברדיאנים עבור פונקציית הקוסינוס
+        alpha = (L / (2.0 * r)) * math.sqrt(p_val / (E * A))
 
-# הגבול העליון הוא עומס אוילר התיאורטי (חציון עליון מוחלט לקריסה)
-    p_max = (np.pi*2 * E * (A * r2)) / L*2
+        # חישוב ישיר של המאמץ המקסימלי ללא משתנה סקנט נפרד (קוסינוס ישירות במכנה)
+        max_induced_stress = (p_val / A) * (1.0 + (e * c) / ((r ** 2) * math.cos(alpha)))
 
-    # במקרה קיצוני שבו החסם העליון של אוילר עובר את גבול המאמץ הישיר
-    # נגביל אותו לעומס המקסימלי ממאמץ לחיצה פשוט (P = sigma * A)
-    p_max = min(p_max, sigma_allow * A)
+        return max_induced_stress - sigma_allow
 
-# 3. הרצת שיטת החצייה למציאת השורש בדיוק הנדרש
-    # הדיוק כברירת מחדל ב-bisect הוא גבוה מאוד (מעל ומעבר ל-10^-3 הנדרש)
-    P_critical = bisect(f, p_min, p_max)
-    return float(P_critical)
+    # הגדרת גבולות החיפוש לאלגוריתם ה-Bisection
+    lower_bound = 1e-5
+    upper_bound = euler_limit * 0.9999
+
+    try:
+        # פתרון נומרי למציאת נקודת האפס
+        critical_p = bisect(secant_equation, lower_bound, upper_bound)
+        return float(critical_p)
+    except ValueError:
+        # הודעת שגיאה חלופית למקרה של חריגה פיזיקלית בנתונים
+        raise ValueError("Optimization failed: No convergence within realistic physical boundaries.")
