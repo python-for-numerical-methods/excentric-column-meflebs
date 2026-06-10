@@ -1,7 +1,6 @@
 import numpy as np
 from scipy.optimize import bisect
 
-
 def find_critical_load(L, E, A, r, c, e, sigma_allow):
     """
     L: אורך במ"מ
@@ -15,34 +14,37 @@ def find_critical_load(L, E, A, r, c, e, sigma_allow):
     Return: העומס P בניוטון (float)
     """
 
+    # פונקציית המאמץ המקסימלי
+    def sigma_max(P):
+        if P <= 0:
+            return -sigma_allow  # כדי שהשורש לא ייפול על 0
+
+        theta = (L / (2 * r)) * np.sqrt(P / (E * A))
+
+        # הגנה מפני sec בנקודות אסורות
+        cos_theta = np.cos(theta)
+        if np.abs(cos_theta) < 1e-12:
+            return np.inf
+
+        sec_theta = 1.0 / cos_theta
+
+        return (P / A) * (1 + (e * c / (r ** 2)) * sec_theta)
+
+    # פונקציית השורש
     def f(P):
-        # sigma_max(P) - sigma_allow = 0
-        arg = (L / (2.0 * r)) * np.sqrt(P / (E * A))
-        sec_val = 1.0 / np.cos(arg)
-        sigma_max = (P / A) * (1.0 + (e * c / (r ** 2)) * sec_val)
-        return sigma_max - sigma_allow
+        return sigma_max(P) - sigma_allow
 
-    # הגבול העליון הוא עומס אוילר - שם sec שואף לאינסוף
-    # P_euler = pi^2 * E * I / L^2 = pi^2 * E * A * r^2 / L^2
-    P_euler = (np.pi ** 2 * E * A * r ** 2) / (L ** 2)
+    # טווח חיפוש: מתחילים נמוך ומגדילים עד שינוי סימן
+    P_low = 1e-6
+    P_high = 1.0
 
-    # גבול תחתון - ערך קטן מאוד
-    P_low = 1e-3
+    # מגדילים את הגבול העליון עד שהמאמץ עובר את המותר
+    while f(P_high) < 0:
+        P_high *= 2
+        if P_high > 1e12:  # הגנה מפני לולאה אינסופית
+            raise ValueError("לא נמצא פתרון בתחום סביר")
 
-    # גבול עליון - 99.9% מעומס אוילר כדי להימנע מאסימפטוטה
-    P_high = 0.999 * P_euler
+    # פתרון בשיטת החצייה
+    P_crit = bisect(f, P_low, P_high, xtol=1e-6, rtol=1e-6)
 
-    # וידוא שיש שינוי סימן בתחום
-    f_low = f(P_low)
-    f_high = f(P_high)
-
-    # אם f(P_low) > 0 אז גם בעומס מינימלי המאמץ כבר עובר את המותר
-    # אם f(P_high) < 0 אז גם בעומס מקסימלי המאמץ לא מגיע למותר
-    if f_low * f_high > 0:
-        # ננסה להרחיב את הגבול העליון
-        P_high = 0.9999 * P_euler
-        f_high = f(P_high)
-
-    P_critical = bisect(f, P_low, P_high, xtol=1e-6, rtol=1e-9)
-
-    return float(P_critical)
+    return float(P_crit)
