@@ -20,6 +20,8 @@ def find_critical_load(L, E, A, r, c, e, sigma_allow):
     # נייבא כאן את הקוד
     import numpy as np
     from scipy.optimize import bisect
+
+    def find_critical_load(L, E, A, r, c, e, sigma_allow):
     
         def f(P):
             if P <= 0:
